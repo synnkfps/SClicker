@@ -5,28 +5,25 @@ import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
 import me.synnk.Main;
 
 public class KeyListener implements NativeKeyListener {
-    private static String pressedKey;
+    private static String currentKeybind;
     @Override
-    public void nativeKeyPressed(NativeKeyEvent nativeEvent) {
-        NativeKeyListener.super.nativeKeyPressed(nativeEvent);
-        // test
-        if (String.valueOf(nativeEvent.getKeyCode()).equals(pressedKey)) {
-            Main.toggled.setSelected(!Main.toggled.isSelected());
+    public void nativeKeyPressed(NativeKeyEvent e) {
+        if (String.valueOf(e.getKeyCode()).equals(currentKeybind)) {
+            Main.activate();
         }
 
         if (Main.isWaiting) {
-            pressedKey = String.valueOf(nativeEvent.getKeyCode());
+            currentKeybind = String.valueOf(e.getKeyCode());
         }
     }
 
     @Override
-    public void nativeKeyReleased(NativeKeyEvent nativeEvent) {
-        NativeKeyListener.super.nativeKeyReleased(nativeEvent);
-        System.out.println("Released: " + nativeEvent.getKeyCode());
-        if (String.valueOf(nativeEvent.getKeyCode()).equals(pressedKey) && Main.isWaiting) {
-            Main.isWaiting = false;
-            Main.keybind.setText(pressedKey);
+    public void nativeKeyReleased(NativeKeyEvent e) {
+        if (Main.isWaiting && String.valueOf(e.getKeyCode()).equals(currentKeybind)) {
+            Main.keybind.setText(currentKeybind);
             Main.toggled.requestFocus();
+            Main.isWaiting = false;
         }
     }
 }
+

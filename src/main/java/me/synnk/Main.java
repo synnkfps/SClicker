@@ -6,6 +6,8 @@ import me.synnk.listeners.KeyListener;
 import me.synnk.listeners.MouseListener;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -16,34 +18,43 @@ import static com.github.kwhat.jnativehook.mouse.NativeMouseEvent.BUTTON1;
 
 public class Main extends JFrame {
 
-    static Robot robot;
-
-    public static JCheckBox toggled = new JCheckBox("Enabled");
-    public static JTextField keybind = new JTextField("R"); // button to enable the clicker
-
-    public static Boolean clicking = false;
+    public static Robot robot;
+    public static Boolean focused = true;
 
     public static Boolean isWaiting = false; // keybind
+
+    public static JCheckBox toggled = new JCheckBox("Enabled");
+    JLabel keybindLabel = new JLabel("Key: ");
+    public static JTextField keybind = new JTextField("R"); // button to enable the clicker
+
     JLabel labelMinCPS = new JLabel("Min CPS: ");
     JLabel labelMaxCPS = new JLabel("Max CPS: ");
-    JTextField minCPS = new JTextField("8");
-    JTextField maxCPS = new JTextField("12");
+    public static JTextField minCPS = new JTextField("8");
+    public static JTextField maxCPS = new JTextField("12");
 
+    public Main() {
+        setupFrame();
+        addInterface();
+    }
 
-    public void setupFrame() {
-        keybind.addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                System.out.println("Focus Gained");
-                isWaiting = true;
-            }
+    public static void main(String[] args) {
+        try {
+            robot = new Robot();
+            GlobalScreen.registerNativeHook();
+            GlobalScreen.addNativeKeyListener(new KeyListener());
+            GlobalScreen.addNativeMouseListener(new MouseListener());
+        } catch (NativeHookException | AWTException e) {
+            e.printStackTrace();
+        }
 
-            @Override
-            public void focusLost(FocusEvent e) {
-                System.out.println("Focus Lost");
-            }
-        });
+        new Main();
+    }
 
+    public static void activate() {
+        Main.toggled.setSelected(!Main.toggled.isSelected());
+    }
+
+    public void addInterface() {
         setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.ipadx=50;
@@ -69,7 +80,37 @@ public class Main extends JFrame {
 
         c.gridx=0;
         c.gridy=3;
+        add(keybindLabel, c);
+
+        c.gridx=1;
+        c.gridy=3;
         add(keybind, c);
+    }
+    public void setupFrame() {
+        this.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                isWaiting = false;
+            }
+            @Override
+            public void focusLost(FocusEvent e) {
+                focused = false;
+            }
+        });
+        keybind.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                System.out.println("Focus Gained");
+                isWaiting = true;
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                System.out.println("Focus Lost");
+            }
+        });
+
+        toggled.setFocusPainted(false);
 
         setSize(200, 270);
         setLocationRelativeTo(null);
@@ -78,28 +119,5 @@ public class Main extends JFrame {
         setResizable(false);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setVisible(true);
-    }
-
-    public Main() {
-        setupFrame();
-    }
-
-    public static void main(String[] args) {
-        try {
-            robot = new Robot();
-            GlobalScreen.registerNativeHook();
-            GlobalScreen.addNativeKeyListener(new KeyListener());
-            GlobalScreen.addNativeMouseListener(new MouseListener());
-        } catch (NativeHookException | AWTException e) {
-            e.printStackTrace();
-        }
-        new Main();
-    }
-
-    public static void sendClick() {
-        System.out.println("Clicking");
-        robot.mousePress(MouseEvent.BUTTON1_MASK);
-        robot.delay(10);
-        robot.mouseRelease(MouseEvent.BUTTON1_MASK);
     }
 }

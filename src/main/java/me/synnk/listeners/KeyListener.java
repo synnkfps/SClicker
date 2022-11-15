@@ -9,6 +9,15 @@ public class KeyListener implements NativeKeyListener {
     @Override
     public void nativeKeyPressed(NativeKeyEvent nativeEvent) {
         NativeKeyListener.super.nativeKeyPressed(nativeEvent);
+
+        if (String.valueOf(nativeEvent.getKeyCode()).equals(pressedKey)) {
+            if (Main.toggled.isSelected()) {
+                Main.toggled.setSelected(false);
+            } else {
+                Main.toggled.setSelected(true);
+            }
+        }
+
         if (Main.isWaiting) {
             pressedKey = String.valueOf(nativeEvent.getKeyCode());
         }
